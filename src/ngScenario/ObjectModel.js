@@ -66,7 +66,7 @@ angular.scenario.ObjectModel = function(runner) {
 
   runner.on('StepBegin', function(spec, step) {
     var it = self.getSpec(spec.id);
-    var step = new angular.scenario.ObjectModel.Step(step.name);
+    step = new angular.scenario.ObjectModel.Step(step.name);
     it.steps.push(step);
 
     // forward the event
@@ -76,8 +76,9 @@ angular.scenario.ObjectModel = function(runner) {
   runner.on('StepEnd', function(spec) {
     var it = self.getSpec(spec.id);
     var step = it.getLastStep();
-    if (step.name !== step.name)
+    if (step.name !== step.name) {
       throw 'Events fired in the wrong order. Step names don\'t match.';
+    }
     complete(step);
 
     // forward the event
@@ -114,7 +115,7 @@ angular.scenario.ObjectModel = function(runner) {
   });
 
   function complete(item) {
-    item.endTime = new Date().getTime();
+    item.endTime = Date.now();
     item.duration = item.endTime - item.startTime;
     item.status = item.status || 'success';
   }
@@ -140,8 +141,9 @@ angular.scenario.ObjectModel.prototype.on = function(eventName, listener) {
  */
 angular.scenario.ObjectModel.prototype.emit = function(eventName) {
   var self = this,
-      args = Array.prototype.slice.call(arguments, 1),
-      eventName = eventName.toLowerCase();
+      args = Array.prototype.slice.call(arguments, 1);
+
+  eventName = eventName.toLowerCase();
 
   if (this.listeners[eventName]) {
     angular.forEach(this.listeners[eventName], function(listener) {
@@ -170,7 +172,7 @@ angular.scenario.ObjectModel.prototype.getDefinitionPath = function(spec) {
 /**
  * Gets a spec by id.
  *
- * @param {string} The id of the spec to get the object for.
+ * @param {string} id The id of the spec to get the object for.
  * @return {Object} the Spec instance
  */
 angular.scenario.ObjectModel.prototype.getSpec = function(id) {
@@ -187,7 +189,7 @@ angular.scenario.ObjectModel.prototype.getSpec = function(id) {
 angular.scenario.ObjectModel.Spec = function(id, name, definitionNames) {
   this.id = id;
   this.name = name;
-  this.startTime = new Date().getTime();
+  this.startTime = Date.now();
   this.steps = [];
   this.fullDefinitionName = (definitionNames || []).join(' ');
 };
@@ -195,7 +197,7 @@ angular.scenario.ObjectModel.Spec = function(id, name, definitionNames) {
 /**
  * Adds a new step to the Spec.
  *
- * @param {string} step Name of the step (really name of the future)
+ * @param {string} name Name of the step (really name of the future)
  * @return {Object} the added step
  */
 angular.scenario.ObjectModel.Spec.prototype.addStep = function(name) {
@@ -210,7 +212,7 @@ angular.scenario.ObjectModel.Spec.prototype.addStep = function(name) {
  * @return {Object} the step
  */
 angular.scenario.ObjectModel.Spec.prototype.getLastStep = function() {
-  return this.steps[this.steps.length-1];
+  return this.steps[this.steps.length - 1];
 };
 
 /**
@@ -229,11 +231,11 @@ angular.scenario.ObjectModel.Spec.prototype.setStatusFromStep = function(step) {
 /**
  * A single step inside a Spec.
  *
- * @param {string} step Name of the step
+ * @param {string} name Name of the step
  */
 angular.scenario.ObjectModel.Step = function(name) {
   this.name = name;
-  this.startTime = new Date().getTime();
+  this.startTime = Date.now();
 };
 
 /**

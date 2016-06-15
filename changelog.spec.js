@@ -1,3 +1,7 @@
+/* global describe: false, beforeEach: false, afterEach: false, it: false, expect: false */
+
+'use strict';
+
 describe('changelog.js', function() {
   var ch = require('./changelog');
 
@@ -13,7 +17,7 @@ describe('changelog.js', function() {
       expect(msg.hash).toBe('9b1aff905b638aa274a5fc8f88662df446d374bd');
       expect(msg.subject).toBe('broadcast $destroy event on scope destruction');
       expect(msg.body).toBe('perf testing shows that in chrome this change adds 5-15% overhead\n' +
-          'when destroying 10k nested scopes where each scope has a $destroy listener\n')
+          'when destroying 10k nested scopes where each scope has a $destroy listener\n');
       expect(msg.component).toBe('scope');
     });
 
@@ -38,6 +42,67 @@ describe('changelog.js', function() {
           'another line with more info\n');
 
       expect(msg.breaking).toEqual(' first breaking change\nsomething else\nanother line with more info\n');
+    });
+  });
+
+  describe('printSection', function() {
+    var output;
+    var streamMock = {
+      write: function(str) {
+        output += str;
+      }
+    };
+
+    beforeEach(function() {
+      output = '';
+    });
+
+    it('should add a new line at the end of each breaking change list item ' +
+       'when there is 1 item per component', function() {
+      var title = 'test';
+      var printCommitLinks = false;
+
+      var section = {
+        module1: [{subject: 'breaking change 1'}],
+        module2: [{subject: 'breaking change 2'}]
+      };
+      var expectedOutput =
+          '\n' + '## test\n\n' +
+          '- **module1:** breaking change 1\n' +
+          '- **module2:** breaking change 2\n' +
+          '\n';
+
+      ch.printSection(streamMock, title, section, printCommitLinks);
+      expect(output).toBe(expectedOutput);
+    });
+
+    it('should add a new line at the end of each breaking change list item ' +
+       'when there are multiple items per component', function() {
+      var title = 'test';
+      var printCommitLinks = false;
+
+      var section = {
+        module1: [
+          {subject: 'breaking change 1.1'},
+          {subject: 'breaking change 1.2'}
+        ],
+        module2: [
+          {subject: 'breaking change 2.1'},
+          {subject: 'breaking change 2.2'}
+        ]
+      };
+      var expectedOutput =
+          '\n' + '## test\n\n' +
+          '- **module1:**\n' +
+          '  - breaking change 1.1\n' +
+          '  - breaking change 1.2\n' +
+          '- **module2:**\n' +
+          '  - breaking change 2.1\n' +
+          '  - breaking change 2.2\n' +
+          '\n';
+
+      ch.printSection(streamMock, title, section, printCommitLinks);
+      expect(output).toBe(expectedOutput);
     });
   });
 });

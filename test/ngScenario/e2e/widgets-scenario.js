@@ -1,3 +1,4 @@
+/* global using: false, binding: false, input: false, select: false, repeater: false */
 'use strict';
 
 describe('widgets', function() {
@@ -52,7 +53,7 @@ describe('widgets', function() {
      * Custom value parser for futures.
      */
     function checkboxParser(value) {
-      return angular.fromJson(value.substring(value.indexOf('=')+1));
+      return angular.fromJson(value.substring(value.indexOf('=') + 1));
     }
 
     input('checkbox.tea').check();

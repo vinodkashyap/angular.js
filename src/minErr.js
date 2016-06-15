@@ -3,7 +3,7 @@
 /**
  * @description
  *
- * This object provides a utility for producing rich Error messages within 
+ * This object provides a utility for producing rich Error messages within
  * Angular. It can be called as follows:
  *
  * var exampleMinErr = minErr('example');
@@ -25,33 +25,41 @@
  * should all be static strings, not variables or general expressions.
  *
  * @param {string} module The namespace to use for the new minErr instance.
- * @returns {function(string, string, ...): Error} instance
+ * @param {function} ErrorConstructor Custom error constructor to be instantiated when returning
+ *   error from returned function, for cases when a particular type of error is useful.
+ * @returns {function(code:string, template:string, ...templateArgs): Error} minErr instance
  */
 
-function minErr(module) {
-  return function () {
-    var prefix = '[' + (module ? module + ':' : '') + arguments[0] + '] ',
-      template = arguments[1],
-      templateArgs = arguments,
-      message;
-    
-    message = prefix + template.replace(/\{\d+\}/g, function (match) {
-      var index = +match.slice(1, -1), arg;
+function minErr(module, ErrorConstructor) {
+  ErrorConstructor = ErrorConstructor || Error;
+  return function() {
+    var SKIP_INDEXES = 2;
 
-      if (index + 2 < templateArgs.length) {
-        arg = templateArgs[index + 2];
-        if (isFunction(arg)) {
-          return arg.toString().replace(/ \{[\s\S]*$/, '');
-        } else if (isUndefined(arg)) {
-          return 'undefined';
-        } else if (!isString(arg)) {
-          return toJson(arg);
-        }
-        return arg;
+    var templateArgs = arguments,
+      code = templateArgs[0],
+      message = '[' + (module ? module + ':' : '') + code + '] ',
+      template = templateArgs[1],
+      paramPrefix, i;
+
+    message += template.replace(/\{\d+\}/g, function(match) {
+      var index = +match.slice(1, -1),
+        shiftedIndex = index + SKIP_INDEXES;
+
+      if (shiftedIndex < templateArgs.length) {
+        return toDebugString(templateArgs[shiftedIndex]);
       }
+
       return match;
     });
 
-    return new Error(message);
+    message += '\nhttp://errors.angularjs.org/"NG_VERSION_FULL"/' +
+      (module ? module + '/' : '') + code;
+
+    for (i = SKIP_INDEXES, paramPrefix = '?'; i < templateArgs.length; i++, paramPrefix = '&') {
+      message += paramPrefix + 'p' + (i - SKIP_INDEXES) + '=' +
+        encodeURIComponent(toDebugString(templateArgs[i]));
+    }
+
+    return new ErrorConstructor(message);
   };
 }
